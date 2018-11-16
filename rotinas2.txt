@@ -1,0 +1,244 @@
+.Biblioteca rotinas                             Rid 998                   I07700
+*===============================================================================================================================================================================================================================================================
+@ . ----------------------------------------------------------
+@ . Valida quantidade no carrinho
+@ . <isExist>
+@ . <qtdeSolicit>
+@ . <qtdeCarrinho>
+@ . <qtdeEstoque>
+@ . ----------------------------------------------------------
+@001:(<isExist>,<qtdeSolicit>,<qtdeCarrinho>,<qtdeEstoque>) .
+
+@    if <isExist> = 'S','SIM','TRUE' return,100 . ; gto 010 .
+
+@    chg <qtdeCarrinho> <qtdeCarrinho> + <qtdeSolicit> .
+
+@    chg <qtdeEstoque> <qtdeEstoque> - <qtdeCarrinho> .
+@    return .
+@
+@010:chg <qtdeEstoque> <qtdeEstoque> - <qtdeSolicit> .
+@    chg <qtdeCarrinho> <qtdeCarrinho> + <qtdeSolicit> .
+@    return .
+
+
+
+
+
+@ . ----------------------------------------------------------
+@ . Valida duas datas, sendo elas respectivamente inicial e final
+@ . <dataIni> Data inicial
+@ . <dataFin> Data final
+@ . ----------------------------------------------------------
+
+@020:(<dataIni>,<dataFin>,<labelErro>)
+@    ldv <dataSystem>h6=DATE1$ .
+
+@    dc d1=d5(<dataIni>) <dataIniConv>h6 if <dataIniConv> \
+                         eq '******' gto 025 . ; .
+@    dc d1=d5(<dataFin>) <dataFimConv>h6 if <dataFimConv> \
+                         eq '******' gto 025 . ; .
+@    if <dataIniConv> > <dataFimConv> \
+mbx,ok,i,Aviso 'Data inicial maior que a data final' o,(025) . ; .
+@    if <dataIniConv> > <dataSystem> \
+mbx,ok,i,Aviso 'Data inicial maior que a data atual' o,(025) . ; .
+@    if <dataFimConv> > <dataSystem> \
+mbx,ok,i,Aviso 'Data final maior que a data atual' o,(025) . ; .
+@    return .
+
+@025:return,<labelErro> .
+
+
+
+
+
+@ . ----------------------------------------------------------
+@ . Chamada infoMsg
+@ . <numMsg> Número da mensagem que se encontra na 20F434
+@ . <label> Número do label de retorno após a mensagem
+@ . ----------------------------------------------------------
+@040:(<numMsg>,<label>)
+@    bfn,434,F,20,6,041 '' 2-3 	,<numMsg> ,<linhaMsg>i6 .
+@    rdl,434,F,20,<linhaMsg> 6-100 <msgErro>s100 .
+@    ldv,p <msgErro>=<msgErro> .
+@gto 042 .
+@041:ldv <msgErro>s100='Erro inesperado!!!' .
+@    ldv,p <msgErro>=<msgErro> .
+@042:mbx,ok,i,Aviso <msgErro> o, .
+@    if <label> eq '' return . ; .
+@    return,<label> .
+
+@ . ----------------------------------------------------------
+@ . Chamada: isEmpty
+@ . Valida se o campo está vazio
+@ . <variavel1>....Variável que será verificada
+@ . <nomeDocampo>..Descrição do campo
+@ . <labelRetorno>.Número do label de retorno
+@ . ----------------------------------------------------------
+
+@060:(<variavel1>,<nomeDoCampo>,<labelRetorno>) .
+@    def,c <test>i6,<variavel1> .
+@    if <variavel1> eq 0 gto 061 . ; .
+@    if <test> eq 0 gto 061 . ; .
+@    return .
+@061:mbx,ok,i,Aviso 'O campo '<nomeDoCampo>' \
+                     encontra-se vazio(a), verifique' o, .
+@    return,<labelRetorno> .
+
+
+
+
+
+@ . ----------------------------------------------------------
+@ . Rotina mensagem Yes or No
+@ . <numMsg> Número da mensagem que se encontra no 434.F.20
+@ . <labelYES> Label de retorno se o usuário escolher sim
+@ . <labelNO> Label de retorno se o usuário escolher não
+@ . ----------------------------------------------------------
+@080:(<numMsg>,<labelYES>,<labelNO>) .
+@    bfn,434,F,20,6,081 '' 2-3 	,<numMsg> ,<linhaMsg>i6 .
+@    rdl,434,F,20,<linhaMsg> 6-100 <pergunta>s100 .
+@    ldv,p <pergunta>=<pergunta> .
+@gto 082 .
+
+@082:mbx,yn,i,Aviso <pergunta> y,(083),n,(084) .
+@083:return,<labelYES> .
+@084:return,<labelNO> .
+
+
+
+
+
+@ . ----------------------------------------------------------
+@ . Chamada: validaDATE5
+@ . Rotina que valida uma determinada data no formato DATE5$
+@ . <data> Data
+@ . <label> Label de retorno se houver erro
+@ . ----------------------------------------------------------
+@090:(<data>,<label>) .
+
+@    ldv <dataTemp>h6=<data> .
+
+
+@    dc d1=d5(<data>) <dataConvert>h6 .
+@    if <dataConvert> eq '******' gto 091 . ; .
+@    if <dataConvert> > DATE1$ . ; gto 092 .
+@091:mbx,ok,i,Aviso 'Data informada inválida' o,(093) .
+@092:return .
+@093:ldv <data>=<dataTemp> .
+@    return,<label> .
+
+
+
+
+@ . ----------------------------------------------------------
+@ . Chamada: converteDATE5paraDATE1
+@ . Rotina que converte DATE5$ para DATE1$
+@ . <data> Data
+@ . <label> Label de retorno se não for possível converter
+@ . ----------------------------------------------------------
+@110:(<data>,<label>) .
+
+@    dc d1=d5(<data>) <dataConvert>h6 .
+@    if <dataConvert> eq '******' gto 111 . ; .
+@    ldv <data>=<dataConvert> gto 112 .
+@111:mbx,ok,i,Aviso 'Data informada inválida' o,(113) .
+@112:return .
+@113:return,<label> .
+
+@ . ----------------------------------------------------------
+@ . Rotina que converte DATE5$ para DATE15$
+@ . <data> Data
+@ . <label> Label de retorno se não for possível converter
+@ . ----------------------------------------------------------
+@120:(<data>,<label>) .
+
+@    dc d19=d5(<data>) <dataConvert>h10 .
+@    if <dataConvert> eq '********' gto 111 . ; .
+@    ldv <data>=<dataConvert> gto 112 .
+@111:mbx,ok,i,Aviso 'Data informada inválida - date5ToDate15' o,(113) .
+@112:return .
+@113:if <label> eq '' return . ; return,<label> .
+
+@ . ----------------------------------------------------------
+@ . Rotina que limpa um array
+@ . <array> Data
+@ . <label> Label de retorno se não for possível
+@ . ----------------------------------------------------------
+@130:(<array>,<label>)
+@    ldv <i>i6=1,<count>i6 .
+@    if <array>[<i>] eq '' return . ; .
+@131:ldv <array>[<i>]='' .
+@    inc <i> .
+@    if <i> eq 9 gto 132 . ; gto 131 .
+@132:if <label> eq '' return . ; return,<label> .
+
+@ . ----------------------------------------------------------
+@ . Rotina que recebe como parâmetro uma variável e o tamanho
+@ . padrão de caracteres válids que essa variável deve conter
+@ .
+@ . ----------------------------------------------------------
+
+@140(<variavel>,<qtdeCaracter>,<lblErro>)
+@    ldv <size>i6 .
+@    def,c <size>,<variavel> .
+@    if <size> eq <qtdeCaracter>  gto 141 . ; .
+@    return,<lblErro> .
+@141:mbx,ok,i,Aviso 'Chave de acesso inválida' o, .
+@    return,<lblErro> .
+
+@150:
+@    srh,434,F,2,6,,155 dn 'Matricula' 	,'zzzzzzzzzzz' rnm -2 .
+
+@    ldv <texto>h10='',<i>i5=0,<descricao>s150='' .
+@    chg invar$ <descricao> .
+@    lst,-2,2,Y,02,<texto>,05,05,30,080,,L 'Cadastro Supridor ' .
+@    inp <i>,244 .
+@    cls .
+@    ldv <id_supridor>=<descricao>(02-14) .
+@    esr .
+
+@151:
+@    srh,434,F,3,6,,155 dn 'id' 	,'zzzzzz' rnm -2 .
+
+@    ldv <texto>h10='',<i>i5=0,<descricao>s150='' .
+@    chg invar$ <descricao> .
+@    lst,-2,2,Y,02,<texto>,05,05,30,080,,L 'Cadastro Produtivo' .
+@    inp <i>,244 .
+@    cls .
+@    ldv <id_produtivo>=<descricao>(02-6) .
+@    esr .
+
+@152:
+@    srh,434,F,1,6,,155 dn 'atual' 	,'    0' rnm -2 .
+
+@    brk .
+.FERRAMENTAS
+*
+*Codigo               Descricao
+*====================.====================================================================================================
+@rdc,-2,6 2-121 <LisFer>s121 .
+	<LisFer>
+@    brk rnm -2 .
+
+@    ldv <texto>h10='',<i>i5=0,<descricao>s150='' .
+@    chg invar$ <descricao> .
+@    lst,-2,2,Y,02,<texto>,05,05,30,080,,L 'Cadastro Ferramenta' .
+@    inp <i>,244 .
+@    cls .
+@    ldv <id_ferrament>=<descricao>(02-20) .
+@155:esr .
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

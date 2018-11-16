@@ -1,0 +1,39 @@
+.ROTINA DE DEFINICAO DE CONSTANTES
+*PROGRAMA:
+*DT.INIC.:                                                BY: ROBSON
+*===============================================================================================================================================================================================================================================================
+:DEFINE FONTE_NORMAL      FON,t,'tahoma',08,dpb
+:DEFINE FONTE1            FON,t,'Mapper Standard'
+:DEFINE FONTE2           ,09,dpB
+@ .  :DEFINE FONTE_LIST     FONTE1FONTE2
+@ .  :DEFINE FONTE_LIST     FON,t,'terminal',09,dpB
+:DEFINE FONTE_LIST       FON,t,'Courier',06,d
+:DEFINE COR_LIST         'WHI/0070A0'                                                     WHI/DCYA'
+:DEFINE COR_TITULO       'WHI/DRED'
+:DEFINE COR_FUNDO        'BLA/LGRA'
+:DEFINE COR_MENU         'WHI/DBLU'
+:DEFINE COR_TXT          'BLA/LGRA'
+:DEFINE COR_INATIVa      '004080/D6D6DB'
+:DEFINE COR_INATIVO      'dred/D6D6DB'
+:DEFINE COR_EDT          'BLA/WHI'
+:DEFINE COR_TELA         'BLA/LGRA'
+:DEFINE FONTE_NORMAL2    FON,t,'tahoma',07,dpb
+:define infoMsg          'call,1100,i,27 040'
+:define validaDataIniFim 'call,1100,i,27 020'
+:define isEmpty          'call,1100,i,27 060'
+:define ynMsg            'call,1100,i,27 080'
+:define validaDATE5      'call,1100,i,27 090'
+:define DATE5paraDATE1   'call,1100,i,27 110'
+:define DATE5paraDATE19  'call,1100,i,27 120'
+:define limpaArray       'call,1100,i,27 130'
+:define testaTam         'call,1100,i,27 140'
+
+
+
+
+
+
+
+
+
+

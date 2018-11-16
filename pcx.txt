@@ -1,0 +1,1158 @@
+.COPIA                                          Rid 998                   I07700
+*OBJETIVO       : CONTROLAR FERRAMENTAS
+*NOME PROGRAMA  : FERRAMENTA
+*DESENVOLVEDOR  : MATHEUS
+*===============================================================================================================================================================================================================================================================================================================================================================================================================
+
+    *******************************************************************************
+    * OBJETIVO       : CONTROLAR FERRAMENTAS                                      *
+    * NOME PROGRAMA  : FERRAMENTA                                                 *
+    * DESENVOLVEDOR  : MATHEUS                                                    *
+    * VERSÃO         : 1.0.1                                                      *
+    * TABELAS        : F.434                                                      *
+    * TELAS          : F.434                                                      *
+    * SUB-ROTINAS    : 4.I.1100/27.I.1100                                         *
+    * OBSERVAÇÃO     : PREVISTO PARA ENTRADA EM HOMOLOGAÇÃO EM 09/07/2018         *
+    *******************************************************************************
+    *******************************************************************************
+    * Modificação v1.0.1 02/08/2018 por Matheus (O backup se encontra em 29.F.434)*
+    * Motivo: Informar mensagem para que o usuário transmita na posição correta   *
+    * (label @176 até @177                                                        *
+    * E correção no rastreamento de ferramenta, quando o código informado não exi-*
+    * ste após o @fnd (linha 821) o campo código da ferramenta voltava com inform-*
+    * ções de linha de data                                                       *
+    *******************************************************************************
+    *******************************************************************************
+    * Guanabara Diesel Ferramentaria                                              *
+    * Objetivo: Controle de ferramentas                                           *
+    * Data: 30/04/2018                                                            *
+    * GUI: @scgen                                                                 *
+    *******************************************************************************
+
+@    CHG INPUT$ <labelTela>i3 .
+
+:include,1100,i,4
+
+@002 .
+@    lda <totDv>i5[31],<totLbr>i5[31] .
+@    lda,r <vCodFerr>s20[9]='' .
+@    lda,r <vQtdeSolic>h5[9]='' .
+@    lda,r <vObsFerr>s40[9]='' .
+@    lda,r <vLinhaFerr>h6[9]='' .
+@    lda,r <vQtdeEntreg>i5[9]='' .
+@    lda,r <vDescFerr>s22[9]='' .
+@    lda,r <descSaidas>s70[8]='' .
+@    lda,r <numSaidas>i6[9]='' .
+@    lda,r <ferramentas>s20[8]='' .
+
+@    if <labelTela> = '',0 . ; gto <labelTela> .
+
+@001:sc,434,F,33,,,1 '' .
+
+@    if CURV$ eq 09 gto 019 . ; . Saída ferramenta
+@    if CURV$ eq 10 gto 148 . ; . Informar avaria ou perda
+@    if CURV$ eq 11 gto 061 . ; . Recebimento
+@    if CURV$ eq 12 gto 060 . ; . Gráfico HTML
+@    if CURV$ eq 13 gto 001 . ; . Entrada de ferramentas
+@    if CURV$ eq 14 gto 081 . ; . Visualizar pendências
+@    if CURV$ eq 15 gto 170 . ; . Rastreamento
+@    if CURV$ eq 16 gto 185 . ; . Menu ferramenta
+@    GTO 001 .
+
+   ****************************************************************************
+   * Liberação de ferramenta                                                  *
+   ****************************************************************************
+
+@019:ldv <id_supridor>h14,<id_produtivo>h6,<localDoUso>s30,<localSigla>h1,\
+                          <tab>i2=01 .
+@020:sc,434,F,31,,,<tab> t <id_supridor>,,<id_produtivo>,,<localDoUso>,\
+                           <localSigla> .
+
+@    chg INPUT$ <id_supridor>h14,,<id_produtivo>h6,,<localDoUso>s30,\
+                                                  <localSigla>h1 .
+
+@    if CURH$ eq 54,(021),68,(001) . ; .
+
+@    IF CURH$ = 44 IF CURV$ = 09 GTO 215 . ; .
+@    IF CURH$ = 44 IF CURV$ = 11 GTO 216 . ; .
+
+@    ldv <msg>h3=001,<lbl>h3=020,<tab>h1=1 gto 100 .
+
+@021:ldv <msg>s3=005,<lbl>s3=020,<tab>=1      .
+
+@    IF CURH$ > 53 & < 68 GTO 210 . ; .
+
+@    IF <id_supridor> = '' . ; gto 210 .
+@215:rsr,1100,i,27 150 .
+@    GTO 020 .
+
+@210:
+@    fnd,434,F,2,6,100 '' 'Matricula' 	,<id_supridor> .
+
+@    ldv <msg>s3=006,<lbl>s3=020,<tab>=3 .
+
+@    IF CURH$ = 54 GTO 211 . ; .
+
+@    IF <id_produtivo> = '' . ; gto 211 .
+@216:rsr,1100,i,27 151 .
+@    GTO 020 .
+
+@211:
+@    fnd,434,F,3,6,100 '' 'Id' 	,<id_produtivo> .
+
+@    ldv <tab>=5 .
+@    isEmpty(<localDoUso>,'local de uso','020')
+
+@    ldv <tab>=6 .
+@    if <localSigla> eq E,I . ; ldv <msg>s3=024,<lbl>s3=020 gto 100 .
+
+@030:brk .
+.
+*
+*Id    Codigo               Observacao                               Qtde  Descricao
+*=====.====================.========================================.=====.==============================.
+@    brk .
+@    rnm -9 .
+@ .  dsp,-9 .
+@029:ldv <tab>=1,<id_ferrament>s20,<qtdeSolic>i5,<obsFerr>s40 .
+@031:sc,434,F,32,,,<tab> t <id_ferrament>,,<qtdeSolic>,<obsFerr> .
+
+@    chg INPUT$ <id_ferrament>s20,,<qtdeSolic>i5,<obsFerr>s40 .
+
+
+@    if CURH$ eq 07 if CURV$ eq 17 gto 032 . ; . Adicionar
+@    if CURH$ eq 19 if CURV$ eq 17 gto 041 . ; . Remover
+@    if CURH$ eq 32 if CURV$ eq 17 gto 022 . ; . Voltar
+@    if CURH$ eq 45 if CURV$ eq 17 gto 050 . ; . Finalizar
+@    if CURH$ eq 58 if CURV$ eq 17 gto 040 . ; . Carrinho
+@    if CURH$ eq 45 if CURV$ eq 09 gto 214 . ; . Consultar Tabela Ferramenta
+
+@    ldv <msg>s3=001,<lbl>s3=031 gto 100 .
+
+@022:lzr,-9 <linhas-9>i6,  .
+@    if <linhas-9> eq 5 gto 020 . ; .
+@    ynMsg('036','019','031') .
+
+@040:lzr,-9 <linhas-9>i6,, if <linhas-9> eq 5 \
+                               ldv <msg>s3='051',<lbl>s3='031' gto 100 . ; .
+
+@    dsp,-9,,,,,,  'Pressione F1 para voltar' .
+@    gto 031 .
+
+@032:lzr,-9 <linhas-9>i6 if <linhas-9> eq 14 \
+                             ldv <msg>s3='054',<lbl>s3='031' gto 100 . ; .
+@    ldv <tab>=1 .
+@    isEmpty(<id_ferrament>,'codigo da ferramenta','031')
+
+@    ldv <msg>s3=007,<lbl>s3=031,<tab>=1 .
+
+@    IF <id_ferrament> = '' . ; gto 212 .
+@214:rsr,1100,i,27 152 .
+@    GTO 031 .
+
+@212:
+
+@    fnd,434,F,1,6,100 '' 'Codigo' 	,<id_ferrament> ,<linha@fnd>i6 .
+@    rdl,434,F,1,<linha@fnd> 'P','Atual','Estoq' \
+                             <avarOuPerd>h1,<saldoAtual>i5, <saldoEstoq>i5 .
+@    juv,l <saldoAtual> .
+@    if <saldoAtual> < <saldoEstoq> ldv <msg>s3='059',<lbl>s3='031' gto 100 . ; .
+
+@    if <avarOuPerd> eq A,P ldv <msg>s3='058',<lbl>s3='031' gto 100 . ; .
+
+@    if <qtdeSolic> > 1 ldv <tab>=3 infoMsg('008','031') . ; .
+@    if <qtdeSolic> < 1 ldv <tab>=3 infoMsg('035','031') . ; .
+
+@    ldv <existe?>s1='N',<qtdeCarrinho>i5='' .
+@    fnd,-9,6,033 '' 'Codigo' 	,<id_ferrament> ,<linha-9>i6 ldv <existe?>s1='S'
+
+@    rdl,-9,<linha-9> 'Qtde' <qtdeCarrinho>i5 .
+@    juv,l <avarOuPerd> .
+@    if <avariOuPerd> eq A,P ldv <msg>s3='058',<lbl>s3='031' .
+@033:rdl,434,F,1,<linha@fnd> 'Atual' <qtdeEstoque>i5 .
+@    srh,-9 @dn 'Codigo' 	,@ rnm -9 .
+
+@    ldv <msg>s3='057',<lbl>s3='031' .
+@    call,1100,I,27 001(<existe?>,<qtdeSolic>,<qtdeCarrinho>,<qtdeEstoque>) .
+
+@    if <qtdeEstoque> lt 0 ldv <msg>s3=008,<lbl>s3=031,<tab>i1=3 gto 100 . ; .
+@    if <existe?> eq 's' gto 034 . ; .
+@    lzr,-9 <linhas-9>i6,, .
+
+
+@    ln+,-9,<linhas-9>,1 .
+@    inc <linhas-9> .
+
+@    ldv <id>i5='' .
+@    chg <id> <linhas-9> - 5 .
+
+@034:if <qtdeEstoque> lt 0 ldv <msg>s3=008,<lbl>s3=031 gto 100 . ; .
+@    if <existe?> = 'S' gto 035 . ; .
+
+@    wrl,-9,<linhas-9> 'Codigo','Observacao','Qtde','Id' 	,\
+                       <id_ferrament>,<obsFerr>,<qtdeCarrinho>,<id> .
+
+@    mch,434,F,1,-9 dm 'Codigo','Descricao'(1-30) 	,1,a \
+                       'Codigo','Descricao' 	,1,a rnm -9 .
+
+@gto 029 .
+
+@035 .
+@    fnd,-9,6,031 '' 'Codigo' 	,<id_ferrament> ,<linha-9>i6 .
+@    ldv <id>i5='' .
+@    chg <id> <linha-9> - 5 .  <cabecalho> .
+@    wrl,-9,<linha-9> 'Codigo','Observacao','Qtde','Id' 	,\
+                      <id_ferrament>,<obsFerr>,<qtdeCarrinho>,<id> .
+@    gto 031 .
+
+@041 .
+@    lzr,-9 <linha-9>i6,, if <linha-9> eq 5 \
+ldv <msg>s3='051',<lbl>s3='031' gto 100 . ; .
+
+@    ldv <idRemocao>S20,<qtdeRemocao>i5 .
+
+@045:sc,434,F,49,,,2 t <idRemocao>,<qtdeRemocao> .
+@    chg INPUT$ <idRemocao>,<qtdeRemocao> .
+
+@    if CURH$ eq 75 rel . ; .
+@    if CURH$ eq 41 gto 042 . ; . Visualizar
+@    if CURH$ eq 56 gto 043 . ; . Remover
+@    if CURH$ eq 68 gto 031 . ; . Voltar
+
+@042:lzr,-9 <linhas-9>i6,, if <linhas-9> eq 5 \
+                               ldv <msg>s3='051',<lbl>s3='031' gto 100 . ; .
+
+@    dsp,-9,,,,,,  'Pressione F1 para voltar' .
+@    gto 045 .
+
+@043:
+@    ldv <msg>s3=031,<lbl>s3=045 .
+@    fnd,-9,6,100 '' 'Codigo' 	,<idRemocao> ,<linha-9>i5 .
+@    rdl,-9,<linha-9> 'Qtde' <qtdeCarrinho> .
+@    if <qtdeRemocao> < 1 ldv <msg>s3=016,<lbl>s3=041 gto 100 . ; .
+@    if <qtdeRemocao> > <qtdeCarrinho> ldv <msg>s3=015,<lbl>s3=041 gto 100 . ; .
+@    lzr,-9 <linhas-9>i6,, .
+
+@    ynMsg('038','044','041') .
+
+@044 .
+@    chg <qtdeCarrinho> <qtdeCarrinho> - <qtdeRemocao> .
+@    wrl,-9,<linha-9> 66-5 	,<qtdeCarrinho> .
+@    if <qtdeCarrinho> eq 0 ln-,-9,<linha-9>,1 gto 046 . ; .
+
+
+@046 .
+@    tot,-9 'e' 72-5 	,c .
+@    ldv <msg>s3='052',<lbl>s3='031' gto 100 .
+@    lzr,-9 <linha-9>i6,, if <linha-9> eq 5 gto 031 . ; gto 041 .
+
+@050 .
+@    lzr,-9 <linha-9>i6,, if <linha-9> eq 5 mbx,ok,i,Aviso\
+ 'Não existem ferramentas no carrinho' o,(031) . ; .
+@    mch,434,F,1,-9 dm 'Codigo','Descricao'(1-30) 	,1,a 'Codigo','Descricao' 	,1,a rnm -9 .
+
+@059:dfu,099 434,F,1,434,F,5 .
+
+@    ldv <count>i6=6 .
+@    rdl,434,F,1,3 2-6 <ultSaida>h6 .
+@    ldv <qtdeFerr>i5='',<i>i5=1,<qtdeIterar>i5='' .
+@    chg <qtdeFerr> <linha-9> - 5 .
+@    chg <qtdeIterar> <linha-9> -5 .
+@    ldv <flag>h1='S' .
+
+@051:rdl,-9,<count>,052 'Codigo','Qtde','Observacao','Descricao' \
+<vCodFerr>[<i>],<vQtdeSolic>[<i>],<vObsFerr>[<i>],<vDescFerr>[<i>] .
+@    fnd,434,F,1,6,053 '' 'Codigo' 	,<vCodFerr>[<i>] ,<linhai1>i6 .
+@    rdl,434,F,1,<linhai1>,053 'Atual' <qtdeEstoque>i5 .
+
+@    ldv <msg>s3='008',<lbl>s3='053' .
+@    if <vQtdeSolic>[<i>] gt <qtdeEstoque> gto 100 . ; .
+
+@    chg <qtdeEstoque> <qtdeEstoque> - <vQtdeSolic>[<i>] .
+@    wrl,434,F,1,<linhai1> 'Atual','Data','Hora','Usuario','Saida' 	,\
+                           <qtdeEstoque>,DATE5$,TIME$,USER$,<ultSaida> .
+@    inc <count> .
+@    inc <i> .
+@    gto 051 .
+
+@052:inc <ultSaida> .
+
+@    wrl,434,F,1,3 2-6 	,<ultSaida> .
+@    lzr,434,F,5 <linhai4>i6 .
+@    ldv <i>i5=1 .
+@    dec <ultSaida> .
+
+@054:ln+,434,F,5,<linhai4>,1 .
+@    inc <linhai4> .
+
+@    wrl,434,F,5,<linhai4> 'Id','Ferramenta','Qtde Liber','Local de uso',\
+'Observacao','Ferramentaria','Produt','Data','Hora','Status','LC',\
+'Descricao'(1-22),'Qtde Pende' 	,<ultSaida>,<vCodFerr>[<i>],<vQtdeSolic>[<i>],\
+<localDoUso>,<vObsFerr>[<i>],<id_supridor>,<id_produtivo>,DATE5$,TIME$,\
+Penden,<localSigla>,<vDescFerr>[<i>],<vQtdeSolic>[<i>] .
+
+@    if <qtdeIterar> eq <i> gto 056 . ; .
+@    inc <i> .
+@    gto 054 .
+
+@056:cmu .                                # CMU
+@    gto 055 .
+
+@053:mbx,ok,i,Aviso 'Não foi possível liberar as ferramentas' o, .
+@    dcu .                                # DCU
+@    gto 031 .
+
+@099:wat 5000 .
+@    mbx,ok,i,Aviso 'Há um usuário atualizando a tabela, aguarde!!!' o, .
+@    gto 059 .
+@055:mbx,ok,i,Aviso 'Saída registrada com sucesso!!!' o,(001) .
+
+@060 .
+@    ldv,w <dataHoje>h6=DATE5$ .
+@    ldv <dia>i2=<dataHoje>(1-2) .
+@    ldv <mesAno>h4=<dataHoje>(3-4) .
+@    ldv <inicio>h6='01'<mesAno> .
+@    srh,434,F,5 d 'Data' 	,<inicio>/r,<dataHoje>/y,1 rnm -5 .
+@    ldv <i>h2=01 .
+
+@073:srh,-5,6,,072 d 'Data' 	,<inicio> rnm -6 .
+
+@    tot,-6 so 'Qtde Liber','QtdeJaDevo' 	,+,+ <totLbr>[<i>],<totDv>[<i>] .
+
+@    juv,l <totDv>[<i>],<totLbr>[<i>] .
+@    ldv <inicio>h6=<i><mesAno> .
+
+@072 .
+@    if <i> > 31 . ; inc <i> juv,z <i> ldv <inicio>h6=<i><mesAno> gto 073 .
+@ .  rsr 110 .
+@    gto 001 .
+
+   ****************************************************************************
+   * Receber ferramenta                                                       *
+   *                                                                          *
+   ****************************************************************************
+
+@061:ldv <id_produtivo>h6,<id_supridor>s14,<Tab>I2=01 .
+
+@    limpaArray(<descSaidas>,'') .
+@    limpaArray(<vCodFerr>,'') .
+@    limpaArray(<vQtdeSolic>,'') .
+@    limpaArray(<vObsFerr>,'') .
+
+
+@088:sc,434,F,48,,,<Tab> T <id_produtivo>,,<id_supridor> .
+@    chg INPUT$ <id_produtivo>,,<id_supridor> .
+
+
+@    if CURH$ eq 53 gto 081 . ; .  Ver pendências
+@    if CURH$ eq 41 gto 062 . ; .  Receber ferramentas
+@    if CURH$ eq 68 gto 001 . ; .  Voltar
+
+@    IF CURH$ > 44 & < 60  IF CURV$ = 11 GTO 217 . ; .
+@    IF CURH$ > 44 & < 60  IF CURV$ = 13 GTO 218 . ; .
+
+@    ldv <msg>s3=001,<lbl>s3=061 gto 100 . ; .
+
+@062:ldv <msg>s3=048,<lbl>s3=070 .
+
+@    IF <id_produtivo> = '' . ; gto 219 .
+@217:rsr,1100,i,27 151 .
+@    GTO 088 .
+
+@219:
+
+@    IF <id_supridor> = '' . ; gto 220 .
+@218:rsr,1100,i,27 150 .
+@    GTO 088 .
+
+@220:
+
+@    srh,434,F,5,6,,100 d 'Produt','Status' 	,<id_produtivo>,'Penden'/	,\
+                          <id_produtivo>,'Parcia' rnm -8 .
+
+@    ldv <msg>s3=023,<lbl>s3=061 .
+@    fnd,434,F,2,6,100 '' 'Matricula' 	,<id_supridor> .
+
+@    tot,-8 so 'Id','Qtde pende' 	,s,+ .
+@    lzr,-0 <linhas>i6 .
+@    chg <linhas> <linhas> - 5 .
+@    ldv <i>i5=1 .
+@    ldv <count>i5=6 .
+
+@064:rdl,-0,<count>,049 'Id','Local de uso','Data','Status','Hora','Qtde pende' \
+           <numSaida>i6,<localDoUso>s30,<dataSaida>h6,<status>h6,<horaSaida>h8,\
+           <qtdePende>i6 .
+@
+@    ldv,l <saida>s70=''<localDoUso>' '<dataSaida>' '<horaSaida>' '<status>' '<qtdePende>'' .
+
+@    chg <numSaidas>[<i>] <numSaida> .
+@    chg <descSaidas>[<i>] <saida> .
+
+@    if <linhas> < <i> . ; inc <i> \
+inc <count> gto 064 .
+@049:sc,434,F,35,,,1 t <descSaidas>[1],<descSaidas>[2],<descSaidas>[3],\
+<descSaidas>[4],<descSaidas>[5],<descSaidas>[6],<descSaidas>[7],<descSaidas>[8] .
+
+@    if CURV$ eq 11 chg <numSaida> <numSaidas>[1] gto 057 . ; .
+@    if CURV$ eq 12 chg <numSaida> <numSaidas>[2] gto 057 . ; .
+@    if CURV$ eq 13 chg <numSaida> <numSaidas>[3] gto 057 . ; .
+@    if CURV$ eq 14 chg <numSaida> <numSaidas>[4] gto 057 . ; .
+@    if CURV$ eq 15 chg <numSaida> <numSaidas>[5] gto 057 . ; .
+@    if CURV$ eq 16 chg <numSaida> <numSaidas>[6] gto 057 . ; .
+@    if CURV$ eq 17 chg <numSaida> <numSaidas>[7] gto 057 . ; .
+@    if CURV$ eq 18 chg <numSaida> <numSaidas>[8] gto 057 . ; .
+@    if CURV$ eq 19 gto 088 . ; .
+@    ldv <msg>s3='050',<lbl>s3='049' gto 100 .
+
+@057:ldv <msg>s3='050',<lbl>s3='049' .
+@    srh,434,F,5,6,,100 d 'Id','Status' 	,<numSaida>,'Penden'/	,\
+                          <numSaida>,'Parcia' rnm -8 .
+
+@    ldv <i>i5=1,<count>i5=6 .
+@063:rdl,-8,<count>,065 'Ferramenta','Qtde Liber','Observacao' \
+<vCodFerr>[<i>],<vQtdeSolic>[<i>],<vObsFerr>[<i>] .
+@    inc <count> .
+@    inc <i> .
+@    if <i> eq 10 . ; gto 063 .
+@065:dec <i> .
+
+@068:sc,434,F,46,,,2 t <vCodFerr>[1],<vQtdeSolic>[1],<vObsFerr>[1],,\
+<vCodFerr>[2],<vQtdeSolic>[2],<vObsFerr>[2],,<vCodFerr>[3],<vQtdeSolic>[3],\
+<vObsFerr>[3],,<vCodFerr>[4],<vQtdeSolic>[4],<vObsFerr>[4],,<vCodFerr>[5],\
+<vQtdeSolic>[5],<vObsFerr>[5],,<vCodFerr>[6],<vQtdeSolic>[6],<vObsFerr>[6],,\
+<vCodFerr>[7],<vQtdeSolic>[7],<vObsFerr>[7],,<vCodFerr>[8],<vQtdeSolic>[8],\
+<vObsFerr>[8],,<vCodFerr>[9],<vQtdeSolic>[9],<vObsFerr>[9] .
+
+
+
+@    chg INPUT$ ,,<vObsFerr>[1],<vQtdeEntreg>[1],,,<vObsFerr>[2],\
+<vQtdeEntreg>[2],,,<vObsFerr>[3],<vQtdeEntreg>[3],,,<vObsFerr>[4],\
+<vQtdeEntreg>[4],,,<vObsFerr>[5],<vQtdeEntreg>[5],,,<vObsFerr>[6],\
+<vQtdeEntreg>[6],,,<vObsFerr>[7],<vQtdeEntreg>[7],,,<vObsFerr>[8],\
+<vQtdeEntreg>[8],,,<vObsFerr>[9],<vQtdeEntreg>[9] .
+
+@    if CURH$ eq 75 rel . ; .
+@    if CURV$ eq 19 if CURH$ eq 68 gto 049 . ; .
+@    if CURV$ eq 19 if CURH$ eq 56 gto 069 . ; .
+@    ldv <msg>s3='001',<lbl>s3='068' gto 100 . ; .
+
+@069:dfu,074 434,F,5,434,F,1 .
+
+@    ldv <msg>s3=018,<lbl>s3=071 .
+@    juv,r <numSaida> .
+@    sru,434,F,5,6,,100 d 'Id','Status' 	,<numSaida>,'Penden'/	,<numSaida>,'Parcia' rnm -8 .
+
+@    ldv <i2>i5=1,<contador>i5 .
+@066:if <i2> > <i> gto 067 . ; . /* <i> -> número de itens na saída */
+@    fnd,-8,6 '' 'Id','Ferramenta' 	,<numSaida>	,<vCodFerr>[<i2>] ,<vLinhaFerr>[<i2>] .
+@    rdl,-8,<vLinhaFerr>[<i2>] 'QtdeJaDevo' <qtdeJaDevolv>i5 .
+
+@    if <vQtdeEntreg>[<i2>] eq 0 inc <contador> . ; .
+@    if <contador> eq <i> mbx,ok,i,Aviso 'Você deve informar a quantidade devolvida, \
+de pelo menos uma ferramenta' o,(071) .
+@    if <vQtdeEntreg>[<i2>] < 0 ldv <msg>s3=019,<lbl>s3=071 gto 100 . ; .
+@    if <vQtdeEntreg>[<i2>] > <vQtdeSolic>[<i2>] ldv <msg>s3=020,<lbl>s3=071 gto 100 . ; .
+@    chg <vQtdeSolic>[<i2>] <vQtdeSolic>[<i2>] - <vQtdeEntreg>[<i2>] .
+@    chg <qtdeJaDevolv> <qtdeJaDevolv> + <VQtdeEntreg>[<i2>] .
+@    if <vQtdeSolic>[<i2>] eq '    0' ldv <status>s6='Devolv' . ; ldv <status>s6='Parcia' .
+
+@    fnd,434,F,1,6 '' 'Codigo' 	,<vCodFerr>[<i2>] ,<linha1i>i6 .
+@    rdl,434,F,1,<linha1i> 145-5 <qtde1i>i5 .
+@    chg <qtde1i> <qtde1i> + <vQtdeEntreg>[<i2>] .
+@    wrl,434,F,1,<linha1i> 'Atual' 	,<qtde1i> .
+
+@    wrl,-8,<vLinhaFerr>[<i2>] 'Status','QtdeJaDevo','Recebido por','EntregProdut',\
+            'Data  Recebi','Hora    Recebime','Qtde pende','QtdeJaDevo',\
+            'Observacao-entrada' 	,<status>,<vQtdeEntreg>[<i2>],<id_supridor>,\
+            <id_produtivo>,DATE5$,TIME$,<vQtdeSolic>[<i2>],<qtdeJaDevolv>,\
+            <vObsFerr>[<i2>] .
+@    rnm -8 .
+@    inc <i2> gto 066 .
+
+@067:upd cmu .
+@gto 080 .
+
+@070:dcu gto 061 .
+@071:dcu gto 068 .
+@074 mbx,ok,i,Aviso 'Aguarde... Um outro programa está atualizando o sistema' o,(075) .
+@075: wat,m,3000 .
+@gto 069 .
+@080:mbx,ok,i,Aviso 'Ferramenta(s) devolvida(s) com sucesso' o,(061) .
+
+   ***********************************************************************************
+   *     Visualizar pendências                                                       *
+   *                                                                                 *
+   ***********************************************************************************
+
+@081:sc,434,F,47,,,1 '' .
+
+@    if CURV$ eq 09 gto 091 . ; .  Por período
+@    if CURV$ eq 11 gto 082 . ; .  Por Mecânico
+@    if CURV$ eq 13 gto 201 . ; .  Em serviço externo
+@    if CURV$ eq 15 gto 202 . ; .  Em serviço na GBD
+@    if CURH$ eq 68 gto 001 . ; .  Voltar
+@    if CURH$ eq 43 gto 061 . ; .  Ir para o recebimento
+
+@091:    ldv <dataInicial>h6,<dataFinal>h6 .
+@093:sc,434,F,34,,,1 t <dataInicial>,<dataFinal> .
+
+@    if CURH$ eq 68 gto 081 . ; .
+@    if CURH$ eq 57 gto 092 . ; .
+@    if CURH$ ne 68,57 ldv <msg>s3=025,<lbl>s3=093 gto 100 . ; .
+
+@092:chg INPUT$ <dataInicial>h6,<dataFinal>h6 .
+
+@    validaDataIniFim(<dataInicial>,<dataFinal>,'093') .
+
+@    ldv <msg>s3=027,<lbl>s3=093 .
+@    srh,434,F,5,6,,100 d 'Data','Status' 	,<dataInicial>,'Parcia'/r,<dataFinal>,'Penden' .
+@    lzr,-0 <totLinhas>i6 .
+@    ldv <initRead>i6=6 .
+@    rnm -6 .
+
+
+@    brk .
+@094:rsr 095 .
+@    rdc,-6,<initRead>,25 'Id','Ferramenta','Descricao','Qtde pende','Local de uso'(1-20),'Data','Status','Produt' \
+<numSaida>i6,<id_ferrament>s20,<descFerr>s22,<qtde>i5,<localDoUso>s20,<data>h6,<status>h6,<id_produtivo>h6 .
+ |<numSaida>|<id_ferrament>  |<descFerr>|<qtde>|<localDoUso>|<data>|<status>|<id_produtivo>        |
+ +======+======================+======================+=====+====================+======+======+==============+
+
+.eject
+
+@    inc,25 <initRead> .
+@    if <initRead> > <totLinhas> . ; gto 094 .
+@    brk .
+@    dsp,-0,,,,,,'    Digite IMPRIMIR para enviar para impressora ou F1 para voltar' .
+@    gto 081 .
+@095 .
+ +============================================================================================================+
+ |                                                                                                            |
+ |                                    Guanabara Diesel - Ferramentaria                                        |
+ |                              Pendências de ferramentas por perído de tempo                                 |
+ |                                                                                                            |
+ |De: <dataInicial> até: <dataFinal>                                                                                      |
+ |                                                                                                            |
+ +======+======================+======================+=====+====================+======+======+==============+
+ |Id    |Ferramenta            |Descrição             |Qtde |Local               |Data  |Status|Mecânico      |
+ +======+======================+======================+=====+====================+======+======+==============+
+@    esr .
+@082:ldv <id_produtivo>h6 .
+@086:sc,434,F,45,,,1 t <id_produtivo> .
+
+@    if CURH$ eq 57 gto 083 . ; .
+@    if CURH$ eq 68 gto 081 . ; .
+
+@083:chg INPUT$ <id_produtivo>h6 .
+@    ldv <msg>s3='   ',<lbl>s3='   ' .
+@    fnd,434,F,3,6,100 '' 'Id' 	,<id_produtivo> ,<linha>i6 .
+@    rdl,434,F,3,<linha> 'Nome' <nome_Produt>h14 .
+
+
+@    fnd,434,F,5,6,100 '' 'Produt' 	,<id_produtivo> .
+@    ldv <msg>s3=048,<lbl>s3=086 .
+@    srh,434,F,5,6,,100 d 'Produt','Status' 	,<id_produtivo>	,'Penden'/	,<id_produtivo>	,'Parcia' .
+@    lzr,-0 <totLinhas>i6 .
+@    ldv <initRead>i6=6 .
+@    rnm -5 .
+@    brk .
+@084:rsr 085 .
+@    rdc,-5,<initRead>,25 'Id','Ferramenta','Descricao','Qtde pende','Local de uso','Data','Status' \
+<numSaida>i6,<id_ferrament>s20,<descFerr>s22,<qtde>i5,<localDoUso>s20,<data>h6,<status>h6 .
+ |<numSaida>|<id_ferrament>  |<descFerr>|<qtde>|<localDoUso>|<data>|<status>|
+ +======+======================+======================+=====+====================+======+======+
+
+.eject
+
+@    inc,25 <initRead> .
+@    if <initRead> > <totLinhas> . ; gto 084 .
+
+@    brk .
+@    dsp,-0,,,,,,'    Digite IMPRIMIR para enviar para impressora ou F1 para voltar' .
+@    gto 081 .
+@085 .
+ +=============================================================================================+
+ |                                                                                             |
+ |                             Guanabara Diesel - Ferramentaria                                |
+ |                            Pendências de ferramentas em posse de:                                 |
+ |                                                                                             |
+ |                             Produtivo:<id_produtivo> | Nome:<nome_Produt>                          |
+ |                                                                                             |
+ +======+======================+======================+=====+====================+======+======+
+ |Id    |Ferramenta            |Descrição             |Qtde |Local               |Data  |Status|
+ +======+======================+======================+=====+====================+======+======+
+@    esr .
+
+@201:ldv <iOuE>h1='E' gto 203 .
+@202:ldv <iOuE>h1='I' gto 203 .
+@203:ldv <msg>s3=027,<lbl>s3=081 .
+@    srh,434,F,5,6,,100 'd' 'Status','LC' 	,'Penden',<iOuE>/	,'Parcia',<iOuE> .
+
+@    lzr,-0 <totLinhas>i6 .
+@    ldv <initRead>i6=6 .
+@    rnm -5 .
+@    brk .
+@204:rsr 205 .
+@    rdc,-5,<initRead>,25 'Id','Ferramenta','Descricao','Qtde pende','Local de uso','Data','Status','Produt' \
+<numSaida>i6,<id_ferrament>s20,<descFerr>s22,<qtde>i5,<local>s20,<data>h6,<status>h6,<id_produtivo>h6 .
+ |<numSaida>|<id_ferrament>  |<descFerr>|<qtde>|<local>|<data>|<status>|<id_produtivo>        |
+ +======+======================+======================+=====+====================+======+======+==============+
+
+.eject
+
+@    inc,25 <initRead> .
+@    if <initRead> > <totLinhas> . ; gto 204 .
+@    brk .
+@    dsp,-0,,,,,,'    Digite IMPRIMIR para enviar para impressora ou F1 para voltar' .
+@    gto 081 .
+
+@205 .
+ +============================================================================================================+
+ |                                                                                                            |
+ |                                    Guanabara Diesel - Ferramentaria                                        |
+ |                             Pendências de ferramentas em serviço externo                                   |
+ |                                                                                                            |
+ |                                                                                                            |
+ |                                                                                                            |
+ +======+======================+======================+=====+====================+======+======+==============+
+ |Id    |Ferramenta            |Descrição             |Qtde |Local               |Data  |Status|Mecânico      |
+ +======+======================+======================+=====+====================+======+======+==============+
+@    esr .
+
+   ***************************************************************************
+   * Avaria ou perda                                                         *
+   *                                                                         *
+   *                                                                         *
+   ***************************************************************************
+
+@148:ldv <tab>i3=1,<id_produtivo>h6,<id_supridor>h14 .
+@149:sc,434,F,44,,,<tab> t <id_produtivo>,,<id_supridor> .
+
+@    chg INPUT$ <id_produtivo>,,<id_supridor> .
+
+@    if CURH$ eq 56 gto 147 . ; .
+@    if CURH$ eq 68 gto 001 . ; .
+
+@    IF CURH$ > 44 & < 60 IF CURV$ = 11 GTO 221 . ; .
+@    IF CURH$ > 44 & < 60 IF CURV$ = 13 GTO 222 . ; .
+
+@    ldv <msg>s3='001',<lbl>s3='149' gto 100 .
+
+@147:ldv <msg>s3=048,<lbl>s3=149,<count>i6=6 .
+
+@    IF <id_produtivo> = '' . ; gto 223 .
+@221:rsr,1100,i,27 151 .
+@    GTO 149 .
+
+@223:
+
+@    IF <id_supridor> = '' . ; gto 224 .
+@222:rsr,1100,i,27 150 .
+@    GTO 149 .
+
+@224:
+
+@    srh,434,F,5,6,,100 d 'Produt','Status' 	,\
+                          <id_produtivo>,'Penden' rnm -6 .
+@    lzr,-6 <linhas-6>i6 .
+
+@    ldv <msg>s3='056',<lbl>s3='142' .
+@145:if <count> < 6 ldv <count>i6=6,<msg>s3='055',<label>s3='142' gto 100 . ; .
+
+@    if <count> > <linhas-6> dec,8 <count> \
+        ldv <msg>s3='056',<label>s3='142' gto 100 . ; .
+
+@    limpaArray(<descSaidas>,'') .
+@    limpaArray(<ferramentas>,'') .
+@    srh,-6,<count>,8,100 d@n 'Produt' 	,@ rnm -8 .
+
+@    lzr,-8 <linhas-8>i6 .
+@    ldv <start>i6=6,<i>i6=1 .
+
+@146:rdl,-8,<start> 'Id','Ferramenta','Descricao' \
+           <numSaida>h6,<id_ferrament>s20,<descFerr>s22 .
+
+@    ldv,l <saida>s70=''<numSaida>'      '<id_ferrament>'      '<descFerr>'' .
+
+@    chg <ferramentas>[<i>] <id_ferrament> .
+@    chg <descSaidas>[<i>] <saida> .
+@    chg <numSaidas>[<i>] <numSaida> .
+
+@    if <start> eq <linhas-8> gto 142 . ; \
+        inc <start> inc <i> gto 146 .
+
+@142:sc,434,F,36,,,1 t <descSaidas>[1],<descSaidas>[2],<descSaidas>[3],\
+                       <descSaidas>[4],<descSaidas>[5],<descSaidas>[6],\
+                       <descSaidas>[7],<descSaidas>[8] .
+
+@    if CURV$ eq 11 chg <id_ferrament> <ferramentas>[1] gto 150 . ; .
+@    if CURV$ eq 12 chg <id_ferrament> <ferramentas>[2] gto 150 . ; .
+@    if CURV$ eq 13 chg <id_ferrament> <ferramentas>[3] gto 150 . ; .
+@    if CURV$ eq 14 chg <id_ferrament> <ferramentas>[4] gto 150 . ; .
+@    if CURV$ eq 15 chg <id_ferrament> <ferramentas>[5] gto 150 . ; .
+@    if CURV$ eq 16 chg <id_ferrament> <ferramentas>[6] gto 150 . ; .
+@    if CURV$ eq 17 chg <id_ferrament> <ferramentas>[7] gto 150 . ; .
+@    if CURV$ eq 18 chg <id_ferrament> <ferramentas>[8] gto 150 . ; .
+
+@    if CURH$ eq 27 dec,8 <count> gto 145 . ; .
+@    if CURH$ eq 41 inc,8 <count> gto 145 . ; .
+@    if CURH$ eq 61 gto 149 . ; .
+
+@    ldv <msg>='001',<lbl>s3='142' gto 100 .
+
+@150 .
+@    ldv <msg>s3='050',<lbl>s3='142',<avarOuPerd>h1,\
+                      <tab>i3=1,<observacao>s40 .
+
+@ .  fnd,-8,6,100 '' 'Ferramenta' 	,\
+                      <id_ferrament> ,<linha>i6 .
+
+@ .  rdl,434,F,5,<linha> 'Id','Ferramentaria' \
+                         <numSaida>,<id_supridor> .
+
+@151:sc,434,F,43,,,<tab> t <numSaida>,<id_produtivo>,<id_ferrament>,\
+                           <avarOuPerd>,<observacao> .
+
+@    if CURH$ eq 68 gto 142 . ; .
+@    if CURH$ eq 55 gto 143 . ; .
+@    ldv <msg>s3='001',<lbl>s3='151' gto 100 .
+
+@143:chg INPUT$ ,,,<avarOuPerd>s1,<observacao>s40 .
+
+@    ldv <tab>s3=6 isEmpty(<avarOuPerd>,'avaria ou perda','151') .
+
+@    if <avarOuPerd> ne 'A','P' . ; ldv <msg>s3=033,<lbl>s3=151 gto 100 .
+
+@154:dfu,155 434,F,5,434,F,1 .
+
+@    fnd,434,F,1,6,153 '' 'Codigo' 	,<id_ferrament> ,<linha>i6 .
+@    rdl,434,F,1,<linha> 'Atual' <saldoAtual>i5 .
+@    chg <saldoAtual> <saldoAtual> + 1 .
+@    wrl,434,F,1,<linha> 'Atual','Observacao','P' 	,\
+                         <saldoAtual>,<observacao>,<avarOuPerd> .
+
+@    fnd,434,F,5,6,153 '' 'Id','Ferramenta' 	,<numSaida>	,<id_ferrament> ,<linha>i6 .
+
+
+@    ldv <qtdeDevol>i5=1,<qtdePenden>i5=0 .
+@    wrl,434,F,5,<linha> 'AP','Qtde AvPer','Qtde pende','Status','Observacao-entrada',\
+                         'QtdeJaDevo','Recebido por','EntregProdut','Data   Recebi',\
+                         'Hora    Recebime' 	,\
+                          <avarOuperd>,<qtdeDevol>,<qtdePenden>,'Devolv',<observacao>,<qtdeDevol>,\
+                          <id_supridor>,<id_produtivo>,DATE5$,TIME$ .
+
+@    cmu .
+@    infoMsg('004','147') .
+@153:dcu .
+@    infoMsg('039','151') .
+
+@155:wat 5000 .
+@    mbx,ok,i,Aviso 'Há um usuário atualizando a tabela' o, .
+@    gto 154 .
+
+@. --------------------------------------------- . – ENTRADA DE FERRAMENTAS -----------
+@159:ldv <chaveAcesso>s44,<numNf>h9 .
+@    if USER$ ne MATHEUS gto 001 . ; .
+
+
+
+
+@160:sc,434,F,41,,,2 t ,<chaveAcesso>,<numNF> .
+@    chg INPUT$ ,<chaveAcesso>,<numNF> .
+
+@    if CURH$ eq 56 if CURV$ eq 18 gto 162 . ; .
+@    if CURH$ eq 68 if CURV$ eq 18 gto 001 . ; .
+@    if CURH$ eq 75 rel . ; .
+@    ldv <msg>s3='001',<lbl>s3='160' gto 100 .
+
+@    testaTam(<chaveAcesso>,'44','160')
+@    isEmpty(<numNF>,'número da nota fiscal','160')
+
+@162:ldv <id_ferrament>s20,<preco>f14.2,<descricao1>s50,<descricao2>s50,\
+<endereco>s16,<local>h3 .
+
+@163:sc,434,F,50,,,2 t <id_ferrament>,<preco>,<descricao1>,<descricao2>,\
+<endereco>,<local> .
+
+@    chg INPUT$ <id_ferrament>,<preco>,<descricao1>,<descricao2>,<endereco>,<local> .
+
+@    isEmpty(<id_ferrament>,'código da ferramenta','163') .
+@    isEmpty(<preco>,'valor da ferramenta','163') .
+@    isEmpty(<descricao1>,'descrição','163')
+@    isEmpty(<endereco>,'endereço','163')
+
+@    if <preco> < 1 ldv <msg>s3='061',<lbl>s3='163' gto 100 . ; .
+@    if <preco> eq 0 ldv <msg>s3='061',<lbl>s3='163' gto 100 . ; .
+
+@    dfu,164 434,F,1 .
+
+@    bfn,434,F,1,6 'Codigo' 	,<id_ferrament> ,<linha>i6 .
+
+@    ln+,434,F,1,165,<linha> .
+@    inc <linha> .
+@    wrl,434,F,1,<linha> 'Codigo','Preco','Descricao','Endereco','al' 	,\
+                         <id_ferrament>,<preco>,<descricao>,<endereco>,<local> .
+@    dsp,-0 .
+@165:dcu infoMsg(<
+@    gto
+
+
+
+@161 .
+   **************************************************************************
+   *     Rastreamento                                                       *
+   *                                                                        *
+   **************************************************************************
+
+@170:sc,434,F,40,,,1 '' .
+
+@    if CURV$ eq 9  gto 175 . ; .
+@    if CURV$ eq 11 gto 185 . ; .
+@    if CURH$ eq 68 gto 001 . ; .
+
+@175:ldv <id_ferrament>s20,<dataInicial>h6,<dataFinal>h6,<simOuNao>h1 .
+@176:sc,434,F,42,,,1 t <id_ferrament>,,<dataInicial>,<dataFinal> .
+
+@    chg INPUT$ <id_ferrament>s20,,<dataInicial>h10,<dataFinal>h10 . v1.0.1
+
+@rdb if CURH$ eq 47 gto 177 . ; .                                   v1.0.1
+@    if CURH$ eq 68 gto 001 . ; .                                   v1.0.1
+@    if CURH$ eq 61 if CURV$ eq 09 gto 226 . ; .
+
+@    ldv <msg>s3='001',<lbl>s3='176' gto 100 .                      v1.0.1
+
+@177:
+
+@    IF <id_ferrament> = '' . ; gto 225 .
+@226:rsr,1100,i,27 152 .
+@    GTO 176 .
+
+@225:
+
+@    isEmpty(<id_ferrament>,'código da ferramenta','176')           v1.0.1
+
+@    isEmpty(<dataInicial>,'data inicial','176')
+@    isEmpty(<dataFinal>,'data final','176')
+@    validaDataIniFim(<dataInicial>,<dataFinal>,'176')
+
+@    ldv <msg>s3='007',<lbl>s3='176' .                              v1.0.1
+@    fnd,434,F,1,,100 '' 'Codigo' 	,<id_ferrament> ,<linha>i6 .     v1.0.1
+
+@    rdl,434,F,1,<linha> 'Codigo','Descricao'(1-40),'Atual','Preco' \
+         <id_ferrament>s20,<desc_ferrame>s40,<qtdeEstoque>i5,<precoUltComp>f14.2 .
+
+@    ldv <msg>s3=043,<lbl>s3=176 .
+@    srh,434,F,5,,,100 d 'Ferramenta','Data' 	,\
+         <id_ferrament>,<dataInicial>/r,<id_ferrament>,<dataFinal>/y,,5 .
+
+@    rnm -5 .
+
+@    lzr,-5 <linhas-5>i6 .
+
+@    ldv <linha>i6=6,<cntPag>i2=4 .
+@    brk .
+@174:    rsr 171 .
+@172:rdl,-5,<linha>,173 'Observacao-entrada','Observacao','Id','Qtde Liber','Local de uso',\
+                        'Produt','Data','Hora','Status','Qtde pende','EntregProdut','Data Recebi',\
+                        'Hora    Recebime','AP','Qtde  AvPer','Recebido por','Ferramentaria',\
+                        'Ferramentaria' \
+<obsEntrada>s40,<obsSaida>s40,<idSaida>i6,<qtdeLiber>i5,<localDeUso>s30,<id_produtivo>h6,<dataSaida>h6,<horaSaida>h8,\
+<status>s6,<qtdePende>i5,<entregPor>h6,<dataDevol>h6,<horaDevo>h8,<avarOuPerda>h1,<qtdeAvaria>i5,\
+<librSaida>h14,<librEntrada>h14,<id_supridor>h14 .
+ |SAIDA: <idSaida>   LOCAL: <localDeUso>  RECEBIDO POR: <id_produtivo> | ENTREGUE POR: <id_supridor>  |
+ |                                                                                                            |
+ |OBSERVACAO DE SAIDA: <obsSaida>   DATA: <dataSaida>   HORA: <horaSaida>               |
+ |                                                                                                            |
+ |Status: <status>   QUANTIDADE ENTREGUE: <qtdeLiber>   QUANTIDADE PENDENTE: <qtdePende>                                    |
+ |                                                                                                            |
+ |                                                       ENTREGUE POR: <entregPor> | RECEBIDO POR: <librEntrada>  |
+ |                                                                                                            |
+ |OBSERVACAO DE ENTR.: <obsEntrada>   DATA: <dataDevol>   HORA: <horaDevo>               |
+ |                                                                                                            |
+ |AVARIA OU PERDA: <avarOuPerda> (A - AVARIA / P - PERDA)   QUANTIDADE: <qtdeAvaria>                                             |
+ +------------------------------------------------------------------------------------------------------------+
+@    inc <linha> dec <cntPag> .
+@    if <cntPag> eq 0 . ; gto 172 .
+
+.eject
+
+@    if <linha> > <linhas-5> . ; ldv <cntPag>i2=3 gto 174 .
+
+@173:brk .
+@    dsp,-0,,,,,,'    Pressione F1 para voltar' .
+@    gto 170 .
+@171 .
+@    juv,l <precoUltComp> .
+@    juv,l <qtdeEstoque> .
+ +------------------------------------------------------------------------------------------------------------+
+ | GUANABARA DIESEL S/A                                      CONSULTA A PARTIR DE : <dataInicial> ATE <dataFinal> |
+ |                                                                                                            |
+ |           FERRAMENTA ...................: <id_ferrament>                                             |
+ |           DESCRICAO ....................: <desc_ferrame>                         |
+ |           PRECO DA ULTIMA COMPRA .......: <precoUltComp>                                                   |
+ |           ESTOQUE ATUAL ................: <qtdeEstoque>                                                            |
+ |                                                                                                            |
+ +------------------------------------------------------------------------------------------------------------+
+@    esr .
+
+@ . -----------------------------------------------------Mensagens de erro
+@ . O primeiro argumento é a linha da mensagem que se encontra no 434,F,20
+@ . O segundo argumento é o label para onde o call retornará o controle
+@ . infoMsg é igual a 'call,1100,i,27 040'
+
+@185:sc,434,F,37,,,1 '' .
+
+@    if CURV$ eq 09 gto 186 . ; .
+@    if CURV$ eq 18 gto 001 . ; .
+
+
+
+
+
+@186:ldv <tab>i2=1,<id_ferrament>s20 .
+@    sc,434,F,39,,,<tab> t <id_ferrament> .
+
+@    if CURV$ eq 18,8 . ; ldv <msg>s3='001',<lbl>s3='186' gto 100 .
+@    if CURH$ eq 54 gto 187 . ; .
+@    if CURH$ eq 68 gto 185 . ; .
+@    if CURH$ eq 75 rel . ldv <msg>s3='001',<lbl>s3='186' gto 100 .
+
+@187:chg INPUT$ <id_ferrament>s20 .
+
+@
+@004:if <nomeEndere> eq '' ldv <msg>s3=044,<lbl>s3=010 gto 200 . ; .
+
+@    ldv <msg>s3='007',<lbl>s3='186' .
+@    fnd,434,F,1,,100 '' 'Codigo' 	,<id_ferrament> ,<linha>i6 .
+@    rdl,434,F,1,<linha> 'Descricao'(1-50),'Descricao'(51-50),'Endereco','al' \
+                         <descricaoPt1>s50,<descricaoPt2>s50,<endereco>s16,<localizacao>h1 .
+
+@    sc,434,F,38,,,<tab> t <id_ferrament>,<localizacao>,<endereco>,<descricaoPt1>,<descricaoPt2> .
+@    chg INPUT$ ,<localizacao>,<endereco>,, .
+
+@    if CURH$ eq 68 gto 186 . ; .
+@    if CURH$ eq 54 . ; ldv <msg>s3='001',<lbl>s3='187' .
+
+@188:dfu,189 434,F,1 .
+@    wrl,434,F,1,<linha> 'Endereco','al' 	,<endereco>,<localizacao> .
+
+@    cmu ldv <msg>s3='046',<lbl>s3='186' gto 100 .
+@    dcu ldv <msg>s3='045',<lbl>s3='187' gto 100 .
+
+@189:wat 5000 .
+@    mbx,ok,i,Aviso 'Existe um(a) outro(a) funcionário(a) atualizando a tabela' o,(188) .
+
+@100:infoMsg(<msg>,<lbl>) .
+@101:rel .
+
+@110:brk .
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="Cruz" content="">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+  integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
+  crossorigin="anonymous">
+  <title>Guanabara Diesel</title>
+  <style>
+     body {
+       font-size: .875rem;
+     }
+     .feather {
+       width: 16px;
+       height: 16px;
+       vertical-align: text-bottom;
+     }
+     .sidebar {
+       position: fixed;
+       top: 0;
+       bottom: 0;
+       left: 0;
+       z-index: 100; /* Behind the navbar */
+       padding: 48px 0 0; /* Height of navbar */
+       box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+     }
+     .sidebar-sticky {
+       position: relative;
+       top: 0;
+       height: calc(100vh - 48px);
+       padding-top: .5rem;
+       overflow-x: hidden;
+       overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+     }
+     @supports ((position: -webkit-sticky) or (position: sticky)) {
+       .sidebar-sticky {
+         position: -webkit-sticky;
+         position: sticky;
+       }
+     }
+     .sidebar .nav-link {
+       font-weight: 500;
+       color: #333;
+     }
+     .sidebar .nav-link .feather {
+       margin-right: 4px;
+       color: #999;
+     }
+     .sidebar .nav-link.active {
+       color: #007bff;
+     }
+     .sidebar .nav-link:hover .feather,
+     .sidebar .nav-link.active .feather {
+       color: inherit;
+     }
+     .sidebar-heading {
+       font-size: .75rem;
+       text-transform: uppercase;
+     }
+     [role="main"] {
+       padding-top: 48px; /* Space for fixed navbar */
+     }
+     .navbar-brand {
+       padding-top: .75rem;
+       padding-bottom: .75rem;
+       font-size: 1rem;
+       background-color: rgba(0, 0, 0, .25);
+       box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+     }
+     .navbar .form-control {
+       padding: .75rem 1rem;
+       border-width: 0;
+       border-radius: 0;
+     }
+     .form-control-dark {
+       color: #fff;
+       background-color: rgba(255, 255, 255, .1);
+       border-color: rgba(255, 255, 255, .1);
+     }
+     .form-control-dark:focus {
+       border-color: transparent;
+       box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
+     }
+     .border-top { border-top: 1px solid #e5e5e5; }
+     .border-bottom { border-bottom: 1px solid #e5e5e5; }
+
+   </style>
+
+  </head>
+  body>
+    <nav class="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="http://guanabaradiesel.com.br">Guanabara Diesel
+      </a>
+    </nav>
+    <div class="container-fluid">
+        <div class="row">
+          <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+            <div class="sidebar-sticky">
+              <ul class="nav flex-column">
+                <li class="nav-item">
+                  <p class="nav-link active" href="#">
+                    <span data-feather="home"></span>
+                    Dashboard
+                    <span class="sr-only">(current)</span>
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </nav>
+     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+             <div class="d-flex justify-content-between flex-wrap
+             flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+               <h1 class="h1">Grafico Ferramentaria</h1>
+               <div class="btn-toolbar mb-2 mb-md-0">
+                 <div class="btn-group mr-2">
+
+                 </div>
+               </div>
+             </div>
+         <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+         </div>
+         </main>
+       </div>
+       </div>
+
+       <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js">
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js">
+       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js">
+
+       <script>window.jQuery || document.write(
+           '<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>')
+
+
+
+
+
+           </script>
+       <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+         <script>
+           feather.replace()
+         </script>
+      <!-- Graphs -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.min.js">
+        </script>
+        <script>
+          var ctx = document.getElementById("myChart");
+          var myChart = new Chart(ctx, {
+            type: ''line'',
+            data: {
+              labels: ["Inicio","01", "02", "03", "04", "05", "06", "07", "08",
+              "09", "10", "11", "12", "13"
+                , "14", "15", "16", "17", "18", "19", "20",
+                "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"],
+              datasets: [                     { label: "Liberacoes",
+                data: [0,<totLbr>[1],<totLbr>[2],<totLbr>[3],<totLbr>[4],<totLbr>[5],
+                       <totLbr>[6],<totLbr>[7],<totLbr>[8],<totLbr>[9],<totLbr>[10],
+                       <totLbr>[11],<totLbr>[12],<totLbr>[13],<totLbr>[14],<totLbr>[15],
+                       <totLbr>[16],<totLbr>[17],<totLbr>[18],<totLbr>[19],<totLbr>[20],
+                       <totLbr>[21],<totLbr>[22],<totLbr>[23],<totLbr>[24],<totLbr>[25],
+                       <totLbr>[26],<totLbr>[27],<totLbr>[28],<totLbr>[29],<totLbr>[30],
+                       <totLbr>[31]],
+                lineTension: 0,
+                backgroundColor: ''transparent'',
+                borderColor: ''#007bff'',
+                borderWidth: 2,
+                pointBackgroundColor: ''#007bff'',
+                fill:true,
+                lineTension: 0.05 },
+               { label: "Devolucoes",
+                data: [0,<totDv>[1],<totDv>[2],<totDv>[3],<totDv>[4],<totDv>[5],
+                       <totDv>[6],<totDv>[7],<totDv>[8],<totDv>[9],<totDv>[10],
+                       <totDv>[11],<totDv>[12],<totDv>[13],<totDv>[14],<totDv>[15],
+                       <totDv>[16],<totDv>[17],<totDv>[18],<totDv>[19],<totDv>[20],
+                       <totDv>[21],<totDv>[22],<totDv>[23],<totDv>[24],<totDv>[25],
+                       <totDv>[26],<totDv>[27],<totDv>[28],<totDv>[29],<totDv>[30],
+                       <totDv>[31]],
+                lineTension: 0,
+                backgroundColor: ''transparent'',
+                borderColor: ''#ff3333'',
+                borderWidth: 2,
+                pointBackgroundColor: ''#007bff'',fill: true, lineTension: 0.1 }]
+                    },
+                    options: {
+                      scales: {
+                        yAxes: [{
+                          ticks: {
+                            beginAtZero: true
+                          }
+                        }]
+                      },
+                     legend: {
+                               display: true,
+                             }
+                           }
+                         }, {
+
+
+                           });
+                       </script>
+                     </body>
+
+                     </html>
+@    brk rnm -1 .
+@    pcw,-1 'C:/Unisys/grafico.html'
+@    pc 'CHROME C:/Unisys/grafico.html' .
+@    esr .
+
